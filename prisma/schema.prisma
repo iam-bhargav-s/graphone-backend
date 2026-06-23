@@ -1,0 +1,66 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+// Core Entity: Papers
+model Paper {
+  id               String   @id @default(uuid())
+  slug             String   @unique
+  title            String
+  shortTitle       String?  @map("short_title")
+  abstract         String?
+  tlDr             String?  @map("tl_dr")
+  publicationDate  DateTime? @map("publication_date")
+  submissionDate   DateTime? @map("submission_date")
+  arxivId          String?  @unique @map("arxiv_id")
+  doi              String?
+  paperUrl         String?  @map("paper_url")
+  pdfUrl           String?  @map("pdf_url")
+  sourceUrl        String?  @map("source_url")
+  projectUrl       String?  @map("project_url")
+  citationCount    Int      @default(0) @map("citation_count")
+  referenceCount   Int      @default(0) @map("reference_count")
+  pageCount        Int?     @map("page_count")
+  paperType        String?  @map("paper_type")
+  status           String?
+  language         String?
+  license          String?
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime? @updatedAt @map("updated_at")
+
+  @@map("papers")
+}
+
+// Research Graph Table: Universal Relationship Engine
+model EntityRelationship {
+  id                 String   @id @default(uuid())
+  sourceEntityType   String   @map("source_entity_type")
+  sourceEntityId     String   @map("source_entity_id")
+  targetEntityType   String   @map("target_entity_type")
+  targetEntityId     String   @map("target_entity_id")
+  relationshipType   String   @map("relationship_type")
+  weight             Float    @default(1.0)
+  metadataJson       Json?    @map("metadata_json")
+
+  @@unique([sourceEntityId, targetEntityId, relationshipType])
+  @@index([sourceEntityType, sourceEntityId])
+  @@index([targetEntityType, targetEntityId])
+  @@map("entity_relationships")
+}
+
+// Data Intelligence Trial Entity: Startups
+model Startup {
+  id            String   @id @default(uuid())
+  canonicalName String   @unique @map("canonical_name")
+  sourceName    String?  @map("source_name")
+  sourceUrl     String?  @map("source_url")
+  employeeCount Int?     @map("employee_count")
+  collectedAt   DateTime @default(now()) @map("collected_at")
+
+  @@map("startups")
+}
