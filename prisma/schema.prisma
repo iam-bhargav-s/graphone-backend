@@ -30,6 +30,10 @@ model Paper {
   status           String?
   language         String?
   license          String?
+  tasks      PaperTask[]
+  methods    PaperMethod[]
+  sotaClaims SotaClaim[]
+  rankings   Ranking[]
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime? @updatedAt @map("updated_at")
 
@@ -63,4 +67,78 @@ model Startup {
   collectedAt   DateTime @default(now()) @map("collected_at")
 
   @@map("startups")
+}
+model Task {
+  id     String      @id @default(uuid())
+  name   String      @unique
+  slug   String      @unique
+  color  String?
+  papers PaperTask[]
+
+  @@map("tasks")
+}
+
+model PaperTask {
+  paper_id String
+  task_id  String
+  paper    Paper @relation(fields: [paper_id], references: [id])
+  task     Task  @relation(fields: [task_id], references: [id])
+
+  @@id([paper_id, task_id])
+  @@map("paper_tasks")
+}
+
+model Method {
+  id     String        @id @default(uuid())
+  name   String        @unique
+  slug   String        @unique
+  papers PaperMethod[]
+
+  @@map("methods")
+}
+
+model PaperMethod {
+  paper_id  String
+  method_id String
+  paper     Paper  @relation(fields: [paper_id], references: [id])
+  method    Method @relation(fields: [method_id], references: [id])
+
+  @@id([paper_id, method_id])
+  @@map("paper_methods")
+}
+
+model Benchmark {
+  id       String      @id @default(uuid())
+  name     String      @unique
+  slug     String      @unique
+  claims   SotaClaim[]
+  rankings Ranking[]
+
+  @@map("benchmarks")
+}
+
+model SotaClaim {
+  id           String    @id @default(uuid())
+  paper_id     String
+  benchmark_id String
+  paper        Paper     @relation(fields: [paper_id], references: [id])
+  benchmark    Benchmark @relation(fields: [benchmark_id], references: [id])
+
+  @@unique([paper_id, benchmark_id])
+  @@map("sota_claims")
+}
+
+model Ranking {
+  id            String    @id @default(uuid())
+  paper_id      String
+  benchmark_id  String
+  rank          Int
+  previous_rank Int?
+  updated_at    DateTime  @updatedAt
+  paper         Paper     @relation(fields: [paper_id], references: [id])
+  benchmark     Benchmark @relation(fields: [benchmark_id], references: [id])
+
+  @@unique([paper_id, benchmark_id])
+  @@index([benchmark_id, rank])
+  @@map("rankings")
 }
