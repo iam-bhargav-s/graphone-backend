@@ -1,0 +1,545 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OrganizationType {
+  LAB
+  UNIVERSITY
+  COMPANY
+}
+
+enum RelationshipType {
+  INTRODUCES
+  EVALUATES
+  IMPROVES
+  COMPARES
+  FINE_TUNES
+}
+
+enum Visibility {
+  PUBLIC
+  PRIVATE
+}
+
+model Paper {
+  id         String  @id @default(cuid())
+  slug       String  @unique
+  title      String
+  shortTitle String?
+  abstract   String? @db.Text
+  tlDr       String? @db.Text
+
+  publicationDate DateTime?
+  submissionDate  DateTime?
+
+  arxivId String? @unique
+  doi     String? @unique
+
+  paperUrl   String?
+  pdfUrl     String?
+  sourceUrl  String?
+  projectUrl String?
+
+  citationCount  Int  @default(0)
+  referenceCount Int  @default(0)
+  pageCount      Int?
+
+  paperType String?
+  status    String?
+  language  String?
+  license   String?
+
+  conferenceId String?
+  journalId    String?
+
+  conference Conference? @relation(fields: [conferenceId], references: [id])
+  journal    Journal?    @relation(fields: [journalId], references: [id])
+
+  authors       PaperAuthor[]
+  organizations PaperOrganization[]
+  models        PaperModel[]
+  datasets      PaperDataset[]
+  benchmarks    PaperBenchmark[]
+  repositories  PaperRepository[]
+  tasks         PaperTask[]
+  spaces        PaperSpace[]
+
+  citationsMade     PaperCitation[] @relation("CitingPaper")
+  citationsReceived PaperCitation[] @relation("CitedPaper")
+
+  summary PaperSummary?
+  signal  ResearchSignal?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Author {
+  id   String @id @default(cuid())
+  slug String @unique
+
+  fullName  String
+  firstName String?
+  lastName  String?
+
+  profileImage String?
+  bio          String? @db.Text
+
+  email      String?
+  homepage   String?
+  scholarUrl String?
+  orcid      String?
+
+  twitterUrl  String?
+  githubUrl   String?
+  linkedinUrl String?
+
+  hIndex       Int?
+  citations    Int?
+  publications Int?
+
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+
+  papers PaperAuthor[]
+
+  createdAt DateTime @default(now())
+}
+
+model Organization {
+  id   String @id @default(cuid())
+  slug String @unique
+
+  name        String
+  logo        String?
+  description String? @db.Text
+
+  website      String?
+  headquarters String?
+
+  country String?
+  city    String?
+
+  foundedYear Int?
+
+  type OrganizationType
+
+  totalPapers    Int @default(0)
+  totalModels    Int @default(0)
+  totalCitations Int @default(0)
+
+  authors Author[]
+  papers  PaperOrganization[]
+  models  AIModel[]
+
+  createdAt DateTime @default(now())
+}
+
+model AIModel {
+  id   String @id @default(cuid())
+  slug String @unique
+
+  name        String
+  description String? @db.Text
+
+  releaseDate DateTime?
+
+  modelType      String?
+  parameterCount String?
+  contextWindow  Int?
+  modality       String?
+
+  license String?
+
+  huggingfaceUrl String?
+  githubUrl      String?
+  websiteUrl     String?
+
+  stars     Int @default(0)
+  downloads Int @default(0)
+
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+
+  papers PaperModel[]
+}
+
+model Dataset {
+  id   String @id @default(cuid())
+  slug String @unique
+
+  name        String
+  description String? @db.Text
+
+  datasetType String?
+  modality    String?
+  size        String?
+  language    String?
+
+  license   String?
+  sourceUrl String?
+
+  downloads Int @default(0)
+  citations Int @default(0)
+
+  papers     PaperDataset[]
+  benchmarks Benchmark[]
+}
+
+model Benchmark {
+  id   String @id @default(cuid())
+  slug String @unique
+
+  name        String
+  description String? @db.Text
+
+  metric String?
+
+  datasetId String?
+  dataset   Dataset? @relation(fields: [datasetId], references: [id])
+
+  leaderboardUrl String?
+
+  papers PaperBenchmark[]
+}
+
+model Task {
+  id   String @id @default(cuid())
+  slug String @unique
+
+  name        String
+  description String? @db.Text
+
+  parentTaskId String?
+
+  parentTask Task?  @relation("TaskHierarchy", fields: [parentTaskId], references: [id])
+  children   Task[] @relation("TaskHierarchy")
+
+  papers PaperTask[]
+}
+
+model Repository {
+  id   String @id @default(cuid())
+  slug String @unique
+
+  githubId String?
+
+  owner    String
+  repoName String
+
+  description String? @db.Text
+
+  stars      Int @default(0)
+  forks      Int @default(0)
+  watchers   Int @default(0)
+  openIssues Int @default(0)
+
+  language String?
+  license  String?
+
+  papers PaperRepository[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Conference {
+  id   String @id @default(cuid())
+  slug String @unique
+
+  name    String
+  acronym String?
+
+  year     Int?
+  location String?
+
+  startDate DateTime?
+  endDate   DateTime?
+
+  website String?
+
+  papers Paper[]
+}
+
+model Journal {
+  id   String @id @default(cuid())
+  slug String @unique
+
+  name      String
+  publisher String?
+
+  impactFactor Float?
+
+  website String?
+
+  papers Paper[]
+}
+
+model User {
+  id String @id @default(cuid())
+
+  username String @unique
+  email    String @unique
+  password String
+
+  displayName String
+
+  avatar String?
+
+  bio String? @db.Text
+
+  github  String?
+  twitter String?
+  website String?
+
+  reputationScore Int @default(0)
+
+  collections   Collection[]
+  readingLists  ReadingList[]
+  comments      Comment[]
+  votes         Vote[]
+  follows       Follow[]
+  refreshTokens RefreshToken[]
+
+  createdAt DateTime @default(now())
+}
+
+model RefreshToken {
+  id    String @id @default(cuid())
+  token String @unique
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  expiresAt DateTime
+
+  createdAt DateTime @default(now())
+}
+
+model Collection {
+  id   String @id @default(cuid())
+  slug String @unique
+
+  title       String
+  description String? @db.Text
+
+  visibility Visibility @default(PUBLIC)
+
+  followers Int @default(0)
+
+  creatorId String
+  creator   User   @relation(fields: [creatorId], references: [id])
+}
+
+model ReadingList {
+  id String @id @default(cuid())
+
+  title       String
+  description String? @db.Text
+
+  creatorId String
+  creator   User   @relation(fields: [creatorId], references: [id])
+}
+
+model Comment {
+  id String @id @default(cuid())
+
+  userId     String
+  entityType String
+  entityId   String
+
+  content String @db.Text
+
+  parentCommentId String?
+
+  user User @relation(fields: [userId], references: [id])
+
+  upvotes Int @default(0)
+}
+
+model Vote {
+  id String @id @default(cuid())
+
+  userId String
+
+  entityType String
+  entityId   String
+
+  voteType String
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Follow {
+  id String @id @default(cuid())
+
+  userId String
+
+  entityType String
+  entityId   String
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model PaperSummary {
+  id String @id @default(cuid())
+
+  paperId String @unique
+
+  shortSummary    String? @db.Text
+  detailedSummary String? @db.Text
+
+  contributions String? @db.Text
+  limitations   String? @db.Text
+  futureWork    String? @db.Text
+
+  paper Paper @relation(fields: [paperId], references: [id])
+}
+
+model ResearchSignal {
+  id String @id @default(cuid())
+
+  paperId String @unique
+
+  noveltyScore         Float?
+  impactScore          Float?
+  implementationScore  Float?
+  reproducibilityScore Float?
+  hypeScore            Float?
+  citationVelocity     Float?
+
+  paper Paper @relation(fields: [paperId], references: [id])
+}
+
+model Space {
+  id   String @id @default(cuid())
+  slug String @unique
+
+  title String
+  owner String
+
+  description String? @db.Text
+
+  likes Int @default(0)
+
+  papers PaperSpace[]
+}
+
+model EntityRelationship {
+  id String @id @default(cuid())
+
+  sourceEntityType String
+  sourceEntityId   String
+
+  targetEntityType String
+  targetEntityId   String
+
+  relationshipType String
+
+  weight Float?
+
+  metadataJson Json?
+}
+
+model PaperAuthor {
+  paperId  String
+  authorId String
+
+  authorOrder         Int
+  correspondingAuthor Boolean @default(false)
+
+  paper  Paper  @relation(fields: [paperId], references: [id])
+  author Author @relation(fields: [authorId], references: [id])
+
+  @@id([paperId, authorId])
+}
+
+model PaperOrganization {
+  paperId        String
+  organizationId String
+
+  paper        Paper        @relation(fields: [paperId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@id([paperId, organizationId])
+}
+
+model PaperModel {
+  paperId String
+  modelId String
+
+  relationshipType RelationshipType
+
+  paper Paper   @relation(fields: [paperId], references: [id])
+  model AIModel @relation(fields: [modelId], references: [id])
+
+  @@id([paperId, modelId])
+}
+
+model PaperDataset {
+  paperId   String
+  datasetId String
+
+  paper   Paper   @relation(fields: [paperId], references: [id])
+  dataset Dataset @relation(fields: [datasetId], references: [id])
+
+  @@id([paperId, datasetId])
+}
+
+model PaperBenchmark {
+  paperId     String
+  benchmarkId String
+
+  score Float?
+  rank  Int?
+
+  paper     Paper     @relation(fields: [paperId], references: [id])
+  benchmark Benchmark @relation(fields: [benchmarkId], references: [id])
+
+  @@id([paperId, benchmarkId])
+}
+
+model PaperRepository {
+  paperId      String
+  repositoryId String
+
+  paper      Paper      @relation(fields: [paperId], references: [id])
+  repository Repository @relation(fields: [repositoryId], references: [id])
+
+  @@id([paperId, repositoryId])
+}
+
+model PaperTask {
+  paperId String
+  taskId  String
+
+  paper Paper @relation(fields: [paperId], references: [id])
+  task  Task  @relation(fields: [taskId], references: [id])
+
+  @@id([paperId, taskId])
+}
+
+model PaperCitation {
+  citingPaperId String
+  citedPaperId  String
+
+  citingPaper Paper @relation("CitingPaper", fields: [citingPaperId], references: [id])
+  citedPaper  Paper @relation("CitedPaper", fields: [citedPaperId], references: [id])
+
+  @@id([citingPaperId, citedPaperId])
+}
+
+model PaperSpace {
+  paperId String
+  spaceId String
+
+  paper Paper @relation(fields: [paperId], references: [id])
+  space Space @relation(fields: [spaceId], references: [id])
+
+  @@id([paperId, spaceId])
+}
