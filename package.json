@@ -20,10 +20,12 @@
     "dotenv": "^17.4.2",
     "hono": "^4.12.27",
     "pg": "^8.22.0",
+    "slugify": "^1.6.9",
+    "xlsx": "^0.18.5",
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@types/node": "^26.0.0",
+    "@types/node": "^26.0.1",
     "prisma": "^7.8.0",
     "typescript": "^6.0.3",
     "wrangler": "^4.103.0"
