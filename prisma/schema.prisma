@@ -24,6 +24,11 @@ model Paper {
   pdfUrl           String?  @map("pdf_url")
   sourceUrl        String?  @map("source_url")
   projectUrl       String?  @map("project_url")
+
+  githubUrl        String?  @map("github_url")
+  githubStars      Int?     @default(0) @map("github_stars")
+  githubForks      Int?     @default(0) @map("github_forks")
+
   citationCount    Int      @default(0) @map("citation_count")
   referenceCount   Int      @default(0) @map("reference_count")
   pageCount        Int?     @map("page_count")
@@ -31,6 +36,21 @@ model Paper {
   status           String?
   language         String?
   license          String?
+
+  tasks            PaperTask[]
+  methods          PaperMethod[]
+  sotaClaims       SotaClaim[]
+  rankings         Ranking[]
+  authors          PaperAuthor[]
+  models           PaperModel[]
+  datasets         PaperDataset[]
+  labs             PaperLab[]
+  universities     PaperUniversity[]
+  conferences      PaperConference[]
+  journals         PaperJournal[]
+  repositories     PaperRepository[]
+  summaries        Summary[]
+
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime? @updatedAt @map("updated_at")
 
@@ -64,4 +84,290 @@ model Startup {
   collectedAt   DateTime @default(now()) @map("collected_at")
 
   @@map("startups")
+}
+
+model Task {
+  id     String      @id @default(uuid())
+  name   String      @unique
+  slug   String      @unique
+  color  String?
+  papers PaperTask[]
+
+  @@map("tasks")
+}
+
+model PaperTask {
+  paper_id String
+  task_id  String
+  paper    Paper @relation(fields: [paper_id], references: [id])
+  task     Task  @relation(fields: [task_id], references: [id])
+
+  @@id([paper_id, task_id])
+  @@map("paper_tasks")
+}
+
+model Method {
+  id     String        @id @default(uuid())
+  name   String        @unique
+  slug   String        @unique
+  papers PaperMethod[]
+
+  @@map("methods")
+}
+
+model PaperMethod {
+  paper_id  String
+  method_id String
+  paper     Paper  @relation(fields: [paper_id], references: [id])
+  method    Method @relation(fields: [method_id], references: [id])
+
+  @@id([paper_id, method_id])
+  @@map("paper_methods")
+}
+
+model Benchmark {
+  id       String      @id @default(uuid())
+  name     String      @unique
+  slug     String      @unique
+  claims   SotaClaim[]
+  rankings Ranking[]
+
+  @@map("benchmarks")
+}
+
+model SotaClaim {
+  id           String    @id @default(uuid())
+  paper_id     String
+  benchmark_id String
+  paper        Paper     @relation(fields: [paper_id], references: [id])
+  benchmark    Benchmark @relation(fields: [benchmark_id], references: [id])
+
+  @@unique([paper_id, benchmark_id])
+  @@map("sota_claims")
+}
+
+model Ranking {
+  id            String    @id @default(uuid())
+  paper_id      String
+  benchmark_id  String
+  rank          Int
+  previous_rank Int?
+  updated_at    DateTime  @updatedAt
+  paper         Paper     @relation(fields: [paper_id], references: [id])
+  benchmark     Benchmark @relation(fields: [benchmark_id], references: [id])
+
+  @@unique([paper_id, benchmark_id])
+  @@index([benchmark_id, rank])
+  @@map("rankings")
+}
+
+// --- AUTHORS ---
+model Author {
+  id        String        @id @default(uuid())
+  name      String
+  slug      String        @unique
+  papers    PaperAuthor[]
+
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@map("authors")
+}
+
+model PaperAuthor {
+  paper_id  String
+  author_id String
+  paper     Paper   @relation(fields: [paper_id], references: [id], onDelete: Cascade)
+  author    Author  @relation(fields: [author_id], references: [id], onDelete: Cascade)
+
+  @@id([paper_id, author_id])
+  @@map("paper_authors")
+}
+
+// --- AI MODELS ---
+model Model {
+  id        String       @id @default(uuid())
+  name      String
+  slug      String       @unique
+  papers    PaperModel[]
+
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@map("models")
+}
+
+model PaperModel {
+  paper_id  String
+  model_id  String
+  paper     Paper   @relation(fields: [paper_id], references: [id], onDelete: Cascade)
+  model     Model   @relation(fields: [model_id], references: [id], onDelete: Cascade)
+
+  @@id([paper_id, model_id])
+  @@map("paper_models")
+}
+
+// --- DATASETS ---
+model Dataset {
+  id        String         @id @default(uuid())
+  name      String
+  slug      String         @unique
+  papers    PaperDataset[]
+
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@map("datasets")
+}
+
+model PaperDataset {
+  paper_id   String
+  dataset_id String
+  paper      Paper   @relation(fields: [paper_id], references: [id], onDelete: Cascade)
+  dataset    Dataset @relation(fields: [dataset_id], references: [id], onDelete: Cascade)
+
+  @@id([paper_id, dataset_id])
+  @@map("paper_datasets")
+}
+
+// --- ACADEMIC ENTITIES ---
+model Lab {
+  id        String     @id @default(uuid())
+  name      String
+  slug      String     @unique
+  papers    PaperLab[]
+
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@map("labs")
+}
+
+model PaperLab {
+  paper_id String
+  lab_id   String
+  paper    Paper @relation(fields: [paper_id], references: [id], onDelete: Cascade)
+  lab      Lab   @relation(fields: [lab_id], references: [id], onDelete: Cascade)
+
+  @@id([paper_id, lab_id])
+  @@map("paper_labs")
+}
+
+model University {
+  id        String            @id @default(uuid())
+  name      String
+  slug      String            @unique
+  papers    PaperUniversity[]
+
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  @@map("universities")
+}
+
+model PaperUniversity {
+  paper_id      String
+  university_id String
+  paper         Paper      @relation(fields: [paper_id], references: [id], onDelete: Cascade)
+  university    University @relation(fields: [university_id], references: [id], onDelete: Cascade)
+
+  @@id([paper_id, university_id])
+  @@map("paper_universities")
+}
+
+model Conference {
+  id        String            @id @default(uuid())
+  name      String
+  slug      String            @unique
+  papers    PaperConference[]
+
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  @@map("conferences")
+}
+
+model PaperConference {
+  paper_id      String
+  conference_id String
+  paper         Paper      @relation(fields: [paper_id], references: [id], onDelete: Cascade)
+  conference    Conference @relation(fields: [conference_id], references: [id], onDelete: Cascade)
+
+  @@id([paper_id, conference_id])
+  @@map("paper_conferences")
+}
+
+model Journal {
+  id        String         @id @default(uuid())
+  name      String
+  slug      String         @unique
+  papers    PaperJournal[]
+
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@map("journals")
+}
+
+model PaperJournal {
+  paper_id   String
+  journal_id String
+  paper      Paper   @relation(fields: [paper_id], references: [id], onDelete: Cascade)
+  journal    Journal @relation(fields: [journal_id], references: [id], onDelete: Cascade)
+
+  @@id([paper_id, journal_id])
+  @@map("paper_journals")
+}
+
+// --- TECHNICAL ASSETS ---
+model Repository {
+  id        String            @id @default(uuid())
+  url       String            @unique
+  name      String
+  owner     String
+  papers    PaperRepository[]
+
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  @@map("repositories")
+}
+
+model PaperRepository {
+  paper_id      String
+  repository_id String
+  paper         Paper      @relation(fields: [paper_id], references: [id], onDelete: Cascade)
+  repository    Repository @relation(fields: [repository_id], references: [id], onDelete: Cascade)
+
+  @@id([paper_id, repository_id])
+  @@map("paper_repositories")
+}
+
+// --- COMMUNITY LAYER ---
+model User {
+  id        String       @id @default(uuid())
+  email     String       @unique
+  username  String       @unique
+  auth_id   String?      @unique
+  summaries Summary[]
+
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@map("users")
+}
+
+model Summary {
+  id        String   @id @default(uuid())
+  content   String   @db.Text
+
+  paper_id  String
+  user_id   String
+  paper     Paper    @relation(fields: [paper_id], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("summaries")
 }

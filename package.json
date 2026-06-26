@@ -2,7 +2,7 @@
   "name": "graphone-hono-backend",
   "version": "1.0.0",
   "description": "",
-  "type": "module", 
+  "type": "module",
   "main": "src/index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -14,9 +14,12 @@
     "@hono/zod-validator": "^0.8.0",
     "@neondatabase/serverless": "^1.1.0",
     "@prisma/adapter-neon": "^7.8.0",
+    "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
+    "csv-parser": "^3.2.1",
     "dotenv": "^17.4.2",
     "hono": "^4.12.27",
+    "pg": "^8.22.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
