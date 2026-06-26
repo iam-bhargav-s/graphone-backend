@@ -23,6 +23,12 @@ model Paper {
   pdfUrl           String?  @map("pdf_url")
   sourceUrl        String?  @map("source_url")
   projectUrl       String?  @map("project_url")
+  
+
+  githubUrl        String?  @map("github_url")
+  githubStars      Int?     @default(0) @map("github_stars")
+  githubForks      Int?     @default(0) @map("github_forks")
+
   citationCount    Int      @default(0) @map("citation_count")
   referenceCount   Int      @default(0) @map("reference_count")
   pageCount        Int?     @map("page_count")
@@ -30,19 +36,21 @@ model Paper {
   status           String?
   language         String?
   license          String?
-  tasks      PaperTask[]
-  methods    PaperMethod[]
-  sotaClaims SotaClaim[]
-  rankings   Ranking[]
-  authors         PaperAuthor[]
-  models          PaperModel[]
-  datasets        PaperDataset[]
-  labs         PaperLab[]
-  universities PaperUniversity[]
-  conferences  PaperConference[]
-  journals     PaperJournal[]
-  repositories PaperRepository[]
-  summaries    Summary[]
+
+  tasks            PaperTask[]
+  methods          PaperMethod[]
+  sotaClaims       SotaClaim[]
+  rankings         Ranking[]
+  authors          PaperAuthor[]
+  models           PaperModel[]
+  datasets         PaperDataset[]
+  labs             PaperLab[]
+  universities     PaperUniversity[]
+  conferences      PaperConference[]
+  journals         PaperJournal[]
+  repositories     PaperRepository[]
+  summaries        Summary[]
+  
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime? @updatedAt @map("updated_at")
 
