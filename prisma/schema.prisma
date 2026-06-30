@@ -323,15 +323,47 @@ model PaperRepository {
 }
 
 model User {
-  id        String    @id @default(uuid())
-  email     String    @unique
-  username  String    @unique
-  auth_id   String?   @unique
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id        String   @id @default(uuid())
+
+  username  String   @unique
+  email     String   @unique
+  password  String
+
+  displayName String
+
+  avatar    String?
+  bio       String?
+
+  github    String?
+  twitter   String?
+  website   String?
+
+  reputationScore Int @default(0)
+
+  auth_id   String? @unique
+
   summaries Summary[]
+  refreshTokens RefreshToken[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("users")
+}
+
+model RefreshToken {
+  id String @id @default(uuid())
+
+  token String @unique
+
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  expiresAt DateTime
+
+  createdAt DateTime @default(now())
+
+  @@map("refresh_tokens")
 }
 
 model Summary {
